@@ -1,7 +1,8 @@
 package com.morty.friend.mapper;
 
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import generator.domain.Tag;
+import com.morty.friend.model.domain.Tag;
 
 /**
 * @author morty

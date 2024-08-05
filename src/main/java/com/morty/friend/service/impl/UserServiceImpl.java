@@ -2,20 +2,30 @@ package com.morty.friend.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.morty.friend.common.ErrorCode;
 import com.morty.friend.exception.BusinessException;
 import com.morty.friend.model.domain.User;
 import com.morty.friend.mapper.UserMapper;
+import com.morty.friend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import static com.morty.friend.contant.UserConstant.ADMIN_ROLE;
 import static com.morty.friend.contant.UserConstant.USER_LOGIN_STATIE;
 
 /**
@@ -24,8 +34,7 @@ import static com.morty.friend.contant.UserConstant.USER_LOGIN_STATIE;
  * @author morty
  * @description 针对表【user(用户)】的数据库操作Service实现
  * @createDate 2024-03-10 17:29:24
- */
-@Service
+ */@Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
@@ -161,6 +170,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         safetUser.setUserRole(originUser.getUserRole());
         safetUser.setUserStatus(originUser.getUserStatus());
         safetUser.setCreateTime(originUser.getCreateTime());
+        safetUser.setTags(originUser.getTags());
         return safetUser;
     }
 
@@ -174,6 +184,127 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 移除登录态
         request.getSession().removeAttribute(USER_LOGIN_STATIE);
         return 1;
+    }
+
+    /**
+     * 根据标签搜索用户（内存过滤）
+     *
+     * @param tagNameList 用户要拥有的标签
+     * @return
+     */
+    @Override
+    public List<User> searchUsersByTags(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 1、先查询所有用户
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        List<User> userList = userMapper.selectList(queryWrapper);
+        Gson gson = new Gson();
+        // 2、在内存中判断是否包含要求的标签 并发流：parallelStream()
+        return userList.stream().filter(user -> {
+            String tagsStr = user.getTags();
+            Set<String> tempTagNameSet = gson.fromJson(tagsStr, new TypeToken<Set<String>>() {
+            }.getType());
+            // 处理可能为空的情况
+            tempTagNameSet = Optional.ofNullable(tempTagNameSet).orElse(new HashSet<>());
+            for (String tagName : tagNameList) {
+                if (!tempTagNameSet.contains(tagName)) {
+                    return false;
+                }
+            }
+            return true;
+        }).map(this::getSafetyUser).collect(Collectors.toList());
+    }
+
+    @Override
+    public int updateUser(User user, User loginUser) {
+        long userId = user.getId();
+        if (userId <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // 补充校验，如果用户没有传任何要更新的值，就直接报错，不用执行 update 语句
+        if (user.getUsername() == null && user.getUserAccount() == null && user.getAvatarUrl() == null &&
+                user.getGender() == null && user.getUserPassword() == null && user.getPhone() == null &&
+                user.getEmail() == null && user.getUserStatus() == null && user.getCreateTime() == null &&
+                user.getUpdateTime() == null && user.getIsDelete() == null && user.getUserRole() == null &&
+                user.getPlanetCode() == null && user.getTags() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        // 如果是管理员，允许更新任意用户
+        // 如果不是管理员，只允许更新当前（自己的）用户
+        if (!isAdmin(loginUser) && userId != loginUser.getId()) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+
+        User oldUser = userMapper.selectById(userId);
+        if (oldUser == null) {
+            throw new BusinessException(ErrorCode.NULL_ERROR);
+        }
+        return userMapper.updateById(user);
+    }
+
+    @Override
+    public User getLoginUser(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATIE);
+        if (userObj == null) {
+            throw new BusinessException(ErrorCode.NO_AUTH);
+        }
+        return (User) userObj;
+    }
+
+    /**
+     * 是否为管理员
+     *
+     * @param request
+     * @return
+     */
+    @Override
+    public boolean isAdmin(HttpServletRequest request) {
+        // 仅管理员可查询
+        Object userObj = request.getSession().getAttribute(USER_LOGIN_STATIE);
+        User user = (User) userObj;
+        return user != null && user.getUserRole() == ADMIN_ROLE;
+    }
+
+    /**
+     * 是否为管理员
+     *
+     * @param loginUser
+     * @return
+     */
+    @Override
+    public boolean isAdmin(User loginUser) {
+        // 仅管理员可查询
+        return loginUser != null && loginUser.getUserRole() == ADMIN_ROLE;
+    }
+
+    /**
+     * 根据标签搜索用户（SQL 查询）
+     *
+     * @param tagNameList 用户要拥有的标签
+     * @return
+     */
+    @Deprecated
+    private List<User> searchUserByTagsBySQL(List<String> tagNameList) {
+        if (CollectionUtils.isEmpty(tagNameList)) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+
+        // 拼接 and 查询
+        // like '%Java%' and like '%Python%'
+        for (String tagName : tagNameList) {
+            queryWrapper = queryWrapper.like("tags", tagName);
+        }
+        List<User> userList = userMapper.selectList(queryWrapper);
+        return userList.stream().map(this::getSafetyUser).collect(Collectors.toList());
     }
 
 }
