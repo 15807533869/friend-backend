@@ -3,7 +3,7 @@ package com.morty.friend.common;
 /**
  * 返回工具类
  *
- * @author shkstart
+ * @author morty
  * @create 2024--20 00:07
  */
 public class ResultUtils {

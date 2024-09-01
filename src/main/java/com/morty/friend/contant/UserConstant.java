@@ -2,7 +2,7 @@ package com.morty.friend.contant;
 
 /**
  * 用户常量
- * @author shkstart
+ * @author morty
  * @create 2024--12 23:38
  */
 public interface UserConstant {

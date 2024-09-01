@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * 用户注册请求体
  *
- * @author shkstart
+ * @author morty
  * @create 2024--11 17:54
  */
 @Data

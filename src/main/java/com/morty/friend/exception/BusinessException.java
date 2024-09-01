@@ -4,7 +4,7 @@ import com.morty.friend.common.ErrorCode;
 
 /**
  * 自定义异常类
- * @author shkstart
+ * @author morty
  * @create 2024--20 23:53
  */
 public class BusinessException extends RuntimeException{

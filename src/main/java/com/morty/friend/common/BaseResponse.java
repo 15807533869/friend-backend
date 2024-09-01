@@ -7,7 +7,7 @@ import java.io.Serializable;
 /**
  * 通用返回类
  *
- * @author shkstart
+ * @author morty
  * @create 2024--19 23:59
  */
 @Data

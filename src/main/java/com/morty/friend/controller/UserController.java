@@ -1,6 +1,8 @@
 package com.morty.friend.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.morty.friend.common.BaseResponse;
 import com.morty.friend.common.ErrorCode;
 import com.morty.friend.common.ResultUtils;
@@ -19,13 +21,12 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.morty.friend.contant.UserConstant.ADMIN_ROLE;
 import static com.morty.friend.contant.UserConstant.USER_LOGIN_STATIE;
 
 /**
  * 用户接口
  *
- * @author shkstart
+ * @author morty
  * @create 2024--11 17:03
  */
 @RestController
@@ -33,7 +34,7 @@ import static com.morty.friend.contant.UserConstant.USER_LOGIN_STATIE;
 // 跨域处理
 //@CrossOrigin(origins = {"http://47.106.217.210"}, allowCredentials = "true")
 @CrossOrigin
-public class  UserController {
+public class UserController {
 
     @Resource
     private UserService userService;
@@ -124,11 +125,10 @@ public class  UserController {
     }
 
     @GetMapping("/recommend")
-    public BaseResponse<List<User>> recommendUsers(HttpServletRequest request) {
+    public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
         QueryWrapper<User> queryWrapper = new QueryWrapper();
-        List<User> userList = userService.list(queryWrapper);
-        List<User> list = userList.stream().map(user -> userService.getSafetyUser(user)).collect(Collectors.toList());
-        return ResultUtils.success(list);
+        Page<User> userList = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
+        return ResultUtils.success(userList);
     }
 
     @PostMapping("/update")

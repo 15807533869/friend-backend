@@ -3,7 +3,7 @@ package com.morty.friend.common;
 /**
  * 错误码
  *
- * @author shkstart
+ * @author morty
  * @create 2024--20 23:02
  */
 public enum ErrorCode {
