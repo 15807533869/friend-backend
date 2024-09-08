@@ -34,7 +34,8 @@ import static com.morty.friend.contant.UserConstant.USER_LOGIN_STATIE;
  * @author morty
  * @description 针对表【user(用户)】的数据库操作Service实现
  * @createDate 2024-03-10 17:29:24
- */@Service
+ */
+@Service
 @Slf4j
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         implements UserService {
