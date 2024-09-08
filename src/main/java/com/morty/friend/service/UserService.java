@@ -2,6 +2,7 @@ package com.morty.friend.service;
 
 
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.morty.friend.model.domain.User;
 
@@ -61,6 +62,15 @@ public interface UserService extends IService<com.morty.friend.model.domain.User
      * @return
      */
     List<User> searchUsersByTags(List<String> tagNameList);
+
+    /**
+     * 推荐用户列表
+     * @param pageSize
+     * @param pageNum
+     * @param request
+     * @return
+     */
+    public Page<User> recommendUsers(long pageSize, long pageNum, HttpServletRequest request);
 
     /**
      * 更新用户信息

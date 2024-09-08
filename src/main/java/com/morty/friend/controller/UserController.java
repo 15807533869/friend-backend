@@ -133,27 +133,7 @@ public class UserController {
 
     @GetMapping("/recommend")
     public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
-        User loginUser = userService.getLoginUser(request);
-        String redisKey = String.format("friend:user:recommed:%s", loginUser.getId());
-        ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
-
-        // 如果有缓存，直接读缓存
-        Page<User> userPage = (Page<User>) redisTemplate.opsForValue().get(redisKey);
-        if (userPage != null) {
-            return ResultUtils.success(userPage);
-        }
-
-        // 无缓存，查数据库
-        QueryWrapper<User> queryWrapper = new QueryWrapper();
-        userPage = userService.page(new Page<>(pageNum, pageSize), queryWrapper);
-
-        // 写缓存
-        try {
-            valueOperations.set(redisKey, userPage, 30000, TimeUnit.MILLISECONDS);
-        } catch (Exception e) {
-            log.error("redis set key error", e);
-        }
-
+        Page<User> userPage = userService.recommendUsers(pageSize, pageNum, request);
         return ResultUtils.success(userPage);
     }
 
