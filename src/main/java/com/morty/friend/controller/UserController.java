@@ -7,13 +7,12 @@ import com.morty.friend.common.ErrorCode;
 import com.morty.friend.common.ResultUtils;
 import com.morty.friend.exception.BusinessException;
 import com.morty.friend.model.domain.User;
-import com.morty.friend.model.domain.request.UserLoginRequest;
-import com.morty.friend.model.domain.request.UserRegisterRequest;
+import com.morty.friend.model.request.UserLoginRequest;
+import com.morty.friend.model.request.UserRegisterRequest;
 import com.morty.friend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +20,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.morty.friend.contant.UserConstant.USER_LOGIN_STATIE;

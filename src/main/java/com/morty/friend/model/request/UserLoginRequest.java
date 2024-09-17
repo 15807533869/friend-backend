@@ -1,4 +1,4 @@
-package com.morty.friend.model.domain.request;
+package com.morty.friend.model.request;
 
 import lombok.Data;
 
