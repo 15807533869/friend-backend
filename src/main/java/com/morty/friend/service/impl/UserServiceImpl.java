@@ -226,6 +226,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }).map(this::getSafetyUser).collect(Collectors.toList());
     }
 
+    /**
+     * 推荐用户列表
+     *
+     * @param pageSize
+     * @param pageNum
+     * @param request
+     * @return
+     */
     @Override
     public Page<User> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
         User loginUser = getLoginUser(request);
@@ -245,7 +253,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
         // 写缓存
         try {
-            valueOperations.set(redisKey, userPage, 10000, TimeUnit.MILLISECONDS);
+            valueOperations.set(redisKey, userPage, 30000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             log.error("redis set key error", e);
         }
