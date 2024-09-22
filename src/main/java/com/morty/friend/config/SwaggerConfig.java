@@ -21,13 +21,14 @@ public class SwaggerConfig {
         // 创建一个 swagger 的 bean 实例
         return new Docket(DocumentationType.SWAGGER_2)
 
+                .apiInfo(apiInfo()).apiInfo(apiInfo())
                 // 配置接口信息
                 .select() // 设置扫描接口
                 // 配置如何扫描接口
                 .apis(RequestHandlerSelectors
                                 //.any() // 扫描全部的接口，默认
                                 //.none() // 全部不扫描
-                                .basePackage("com.morty.usercenter.controller") // 扫描指定包下的接口，最为常用
+                                .basePackage("com.morty.friend.controller") // 扫描指定包下的接口，最为常用
                         //.withClassAnnotation(RestController.class) // 扫描带有指定注解的类下所有接口
                         //.withMethodAnnotation(PostMapping.class) // 扫描带有只当注解的方法接口
 

@@ -50,6 +50,11 @@ public class Team implements Serializable {
     private Integer status;
 
     /**
+     * 密码
+     */
+    private String password;
+
+    /**
      * 创建时间
      */
     private Date createTime;
