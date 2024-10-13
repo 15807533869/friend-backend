@@ -164,7 +164,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             // 根据状态来查询
             Integer status = teamQuery.getStatus();
             TeamStatusEnum statusEnum = TeamStatusEnum.getEnumByValue(status);
-            if (statusEnum != null) {
+            if (statusEnum == null) {
                 statusEnum = TeamStatusEnum.PUBLIC;
             }
             if (!isAdmin && statusEnum.equals(TeamStatusEnum.PUBLIC)) {
