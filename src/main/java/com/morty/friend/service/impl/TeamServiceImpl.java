@@ -139,6 +139,10 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             if (id != null && id > 0) {
                 queryWrapper.eq("id", id);
             }
+            List<Long> idList = teamQuery.getIdList();
+            if (CollectionUtils.isNotEmpty(idList)) {
+                queryWrapper.in("id", idList);
+            }
             String searchText = teamQuery.getSearchText();
             if (StringUtils.isNotBlank(searchText)) {
                 queryWrapper.and(qw -> qw.like("name", searchText).or().like("description", searchText));
@@ -159,7 +163,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team>
             Long userId = teamQuery.getUserId();
             // 根据创建人来查询
             if (userId != null && userId > 0) {
-                queryWrapper.eq("user_id", userId);
+                queryWrapper.eq("userId", userId);
             }
             // 根据状态来查询
             Integer status = teamQuery.getStatus();
