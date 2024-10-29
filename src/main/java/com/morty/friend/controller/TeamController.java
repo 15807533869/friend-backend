@@ -4,6 +4,7 @@ package com.morty.friend.controller;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.morty.friend.common.BaseResponse;
+import com.morty.friend.common.DeleteRequest;
 import com.morty.friend.common.ErrorCode;
 import com.morty.friend.common.ResultUtils;
 import com.morty.friend.exception.BusinessException;
@@ -135,12 +136,13 @@ public class TeamController {
     }
 
     @PostMapping("/delete")
-    public BaseResponse<Long> deleteTeam(@RequestBody long teamId, HttpServletRequest request) {
-        if (teamId <= 0) {
+    public BaseResponse<Long> deleteTeam(@RequestBody DeleteRequest deleteRequest, HttpServletRequest request) {
+        if (deleteRequest == null || deleteRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
+        long id = deleteRequest.getId();
         User loginUser = userService.getLoginUser(request);
-        boolean result = teamService.deleteTeam(teamId, loginUser);
+        boolean result = teamService.deleteTeam(id, loginUser);
         if (!result) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "删除失败");
         }
