@@ -3,7 +3,9 @@ package com.morty.friend.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.morty.friend.common.BaseResponse;
 import com.morty.friend.model.domain.User;
+import com.morty.friend.model.vo.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -102,4 +104,13 @@ public interface UserService extends IService<com.morty.friend.model.domain.User
      * @return
      */
     boolean isAdmin(User loginUser);
+
+    /**
+     * 匹配用户
+     *
+     * @param num
+     * @param loginUser
+     * @return
+     */
+    List<User> matchUsers(long num, User loginUser);
 }

@@ -9,6 +9,7 @@ import com.morty.friend.exception.BusinessException;
 import com.morty.friend.model.domain.User;
 import com.morty.friend.model.request.UserLoginRequest;
 import com.morty.friend.model.request.UserRegisterRequest;
+import com.morty.friend.model.vo.UserVO;
 import com.morty.friend.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -129,6 +130,7 @@ public class UserController {
         return ResultUtils.success(userList);
     }
 
+    // todo 推荐多个（未实现）
     @GetMapping("/recommend")
     public BaseResponse<Page<User>> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
         Page<User> userPage = userService.recommendUsers(pageSize, pageNum, request);
@@ -161,5 +163,20 @@ public class UserController {
         return ResultUtils.success(b);
     }
 
+    /**
+     * 获取最匹配的用户
+     *
+     * @param num
+     * @param request
+     * @return
+     */
+    @GetMapping("/match")
+    public BaseResponse<List<UserVO>> matchUsers(long num, HttpServletRequest request) {
+        if (num <= 0 || num > 20) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        User user = userService.getLoginUser(request);
+        return ResultUtils.success(userService.matchUsers(num, user));
 
+    }
 }
