@@ -4,18 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
-import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
-import com.morty.friend.common.BaseResponse;
 import com.morty.friend.common.ErrorCode;
 import com.morty.friend.exception.BusinessException;
 import com.morty.friend.model.domain.User;
 import com.morty.friend.mapper.UserMapper;
-import com.morty.friend.model.vo.UserVO;
 import com.morty.friend.service.UserService;
 import com.morty.friend.utils.AlgorithmUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.util.Pair;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
@@ -29,7 +27,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.morty.friend.contant.UserConstant.ADMIN_ROLE;
 import static com.morty.friend.contant.UserConstant.USER_LOGIN_STATIE;
@@ -331,37 +328,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     @Override
     public List<User> matchUsers(long num, User loginUser) {
-        List<User> userList = this.list();
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("id", "tags");
+        queryWrapper.isNotNull("tags");
+        List<User> userList = this.list(queryWrapper);
         String tags = loginUser.getTags();
         Gson gson = new Gson();
         List<String> tagList = gson.fromJson(tags, new TypeToken<List<String>>() {
         }.getType());
         // 用户列表的下标 => 相似度
-        SortedMap<Integer, Long> indexDistanceMap = new TreeMap<>();
+        List<Pair<User, Long>> list = new ArrayList<>();
+        // 依次计算所有用户和当前用户的相似度
         for (int i = 0; i < userList.size(); i++) {
             User user = userList.get(i);
             String userTags = user.getTags();
-            // 无标签
-            if (StringUtils.isBlank(userTags)) {
+            // 无标签或者为当前用户自己
+            if (StringUtils.isBlank(userTags) || user.getId() == loginUser.getId()) {
                 continue;
             }
             List<String> userTagList = gson.fromJson(user.getTags(), new TypeToken<List<String>>() {
             }.getType());
             // 计算分数
             long distance = AlgorithmUtils.minDistance(tagList, userTagList);
-            indexDistanceMap.put(i, distance);
+            list.add(new Pair<>(user, distance));
         }
-        List<User> userVOList = new ArrayList<>();
-        int i = 0;
-        for (Map.Entry<Integer, Long> entry : indexDistanceMap.entrySet()) {
-            if (i > num) {
-                break;
-            }
-            User user = userList.get(entry.getKey());
-            System.out.println(user.getId() + ":" + entry.getKey() + ":" + entry.getValue());
-            userVOList.add(user);
-            i++;
-        }
+        // 按编辑距离由小到大排序
+        List<Pair<User, Long>> topUserPairList = list.stream()
+                .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
+                .limit(num)
+                .collect(Collectors.toList());
+        List<User> userVOList = topUserPairList.stream().map(Pair::getKey).collect(Collectors.toList());
         return userVOList;
     }
 
