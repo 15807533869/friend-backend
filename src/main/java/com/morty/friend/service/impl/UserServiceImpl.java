@@ -357,8 +357,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
                 .sorted((a, b) -> (int) (a.getValue() - b.getValue()))
                 .limit(num)
                 .collect(Collectors.toList());
-        List<User> userVOList = topUserPairList.stream().map(Pair::getKey).collect(Collectors.toList());
-        return userVOList;
+        // 原本顺序的 userId 列表
+        List<Long> userIdList = topUserPairList.stream().map(pair -> pair.getKey().getId()).collect(Collectors.toList());
+        QueryWrapper<User> userQueryWrapper = new QueryWrapper<>();
+        userQueryWrapper.in("id", userIdList);
+        Map<Long, List<User>> userIdUserListMap = this.list(userQueryWrapper)
+                .stream()
+                .map(user -> getSafetyUser(user))
+                .collect(Collectors.groupingBy(User::getId));
+        List<User> finalUserList = new ArrayList<>();
+        for (Long userId : userIdList) {
+            finalUserList.add(userIdUserListMap.get(userId).get(0));
+        }
+        return finalUserList;
     }
 
     /**
