@@ -236,7 +236,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public Page<User> recommendUsers(long pageSize, long pageNum, HttpServletRequest request) {
         User loginUser = getLoginUser(request);
-        String redisKey = String.format("friend:user:recommed:%s", loginUser.getId());
+        String redisKey = String.format("friend:user:recommend:%s", loginUser.getId());
         ValueOperations<String, Object> valueOperations = redisTemplate.opsForValue();
 
         // 如果有缓存，直接读缓存
